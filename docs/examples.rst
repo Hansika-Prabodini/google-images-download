@@ -167,13 +167,76 @@ The downloading algorithm does a good job of keeping out corrupt images. However
 .. code:: python
 
     import os
+    import logging
     from PIL import Image
 
+    # Configure logging for audit trail
+    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
+    logger = logging.getLogger(__name__)
+
     img_dir = r"path/to/downloads/directory"
+    
+    # Valid image extensions to check
+    VALID_IMAGE_EXTENSIONS = {'.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.tiff', '.tga'}
+    
+    # Verify directory exists and is readable
+    if not os.path.exists(img_dir):
+        logger.error(f"Directory does not exist: {img_dir}")
+        exit(1)
+    
+    if not os.access(img_dir, os.R_OK):
+        logger.error(f"Directory is not readable: {img_dir}")
+        exit(1)
+
+    deleted_count = 0
+    processed_count = 0
+    
     for filename in os.listdir(img_dir):
-        try :
-            with Image.open(img_dir + "/" + filename) as im:
-                 print('ok')
-        except :
-            print(img_dir + "/" + filename)
-            os.remove(img_dir + "/" + filename)
+        file_path = os.path.join(img_dir, filename)
+        
+        # Skip if not a file (e.g., subdirectories)
+        if not os.path.isfile(file_path):
+            continue
+            
+        processed_count += 1
+        
+        # Check if file has a valid image extension
+        file_ext = os.path.splitext(filename)[1].lower()
+        if file_ext not in VALID_IMAGE_EXTENSIONS:
+            logger.info(f"Skipping non-image file: {filename}")
+            continue
+            
+        try:
+            # Attempt to open and verify the image
+            with Image.open(file_path) as im:
+                # Additional validation: try to load image data
+                im.verify()
+                logger.debug(f"Valid image: {filename}")
+                
+        except (IOError, OSError) as e:
+            # Handle specific PIL exceptions for corrupt images
+            logger.warning(f"Corrupt image detected: {filename} - {str(e)}")
+            
+            # Additional safety check: verify file size is reasonable
+            try:
+                file_size = os.path.getsize(file_path)
+                if file_size == 0:
+                    logger.info(f"Deleting zero-byte file: {filename}")
+                    os.remove(file_path)
+                    deleted_count += 1
+                elif file_size < 100:  # Very small files are likely corrupt
+                    logger.info(f"Deleting very small suspicious file: {filename} ({file_size} bytes)")
+                    os.remove(file_path)
+                    deleted_count += 1
+                else:
+                    # For larger files, log but don't auto-delete (could be format issue)
+                    logger.warning(f"Large suspicious file not deleted (manual review needed): {filename} ({file_size} bytes)")
+                    
+            except OSError as removal_error:
+                logger.error(f"Failed to delete {filename}: {str(removal_error)}")
+                
+        except Exception as unexpected_error:
+            # Handle any other unexpected errors without deleting
+            logger.error(f"Unexpected error processing {filename}: {str(unexpected_error)}")
+    
+    logger.info(f"Processing complete. Files processed: {processed_count}, Files deleted: {deleted_count}")
