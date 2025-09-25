@@ -254,7 +254,7 @@ class ImageDownloader:
             'color': [filters.get('color'), {
                 'red': 'ic:specific,isc:red', 'orange': 'ic:specific,isc:orange', 
                 'yellow': 'ic:specific,isc:yellow', 'green': 'ic:specific,isc:green',
-                'teal': 'ic:specific,isc:teel', 'blue': 'ic:specific,isc:blue',
+                'teal': 'ic:specific,isc:teal', 'blue': 'ic:specific,isc:blue',
                 'purple': 'ic:specific,isc:purple', 'pink': 'ic:specific,isc:pink',
                 'white': 'ic:specific,isc:white', 'gray': 'ic:specific,isc:gray',
                 'black': 'ic:specific,isc:black', 'brown': 'ic:specific,isc:brown'
