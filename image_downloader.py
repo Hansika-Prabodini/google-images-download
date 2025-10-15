@@ -144,8 +144,11 @@ class ImageDownloader:
                 "User-Agent": "Mozilla/5.0 (X11; Linux i686) AppleWebKit/537.17 (KHTML, like Gecko) Chrome/24.0.1312.27 Safari/537.17"
             })
             
+            # Create SSL context with certificate verification enabled
+            ssl_context = ssl.create_default_context()
+            
             # Download the image
-            response = urlopen(req, None, timeout)
+            response = urlopen(req, context=ssl_context, timeout=timeout)
             data = response.read()
             response.close()
             
@@ -173,7 +176,9 @@ class ImageDownloader:
                 'User-Agent': "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36"
             }
             req = urllib.request.Request(url, headers=headers)
-            resp = urllib.request.urlopen(req)
+            # Create SSL context with certificate verification enabled
+            ssl_context = ssl.create_default_context()
+            resp = urllib.request.urlopen(req, context=ssl_context)
             return str(resp.read())
         except Exception as e:
             raise Exception(f"Could not download page {url}: {str(e)}")
