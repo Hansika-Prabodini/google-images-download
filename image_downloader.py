@@ -300,7 +300,7 @@ class ImageDownloader:
 
     def _build_search_url(self, search_term: str, params: str, filters: Optional[Dict]) -> str:
         """Build the main search URL."""
-        base_url = 'https://www.google.com/search?q=' + quote(search_term.encode('utf-8'))
+        base_url = 'https://www.google.com/search?q=' + quote(search_term)
         url = base_url + '&espv=2&biw=1366&bih=667&site=webhp&source=lnms&tbm=isch' + params + '&sa=X&ei=XosDVaCXD8TasATItgE&ved=0CAcQ_AUoAg'
         
         # Add safe search if enabled
