@@ -376,6 +376,18 @@ class ImageDownloader:
 
 # Convenience functions for easier usage
 
+# Module-level shared instance for convenience functions
+# This reduces code duplication and unnecessary object creation
+_default_downloader = None
+
+def _get_default_downloader():
+    """Get or create the default ImageDownloader instance."""
+    global _default_downloader
+    if _default_downloader is None:
+        _default_downloader = ImageDownloader()
+    return _default_downloader
+
+
 def search_images(query: str, limit: int = 10, filters: Optional[Dict] = None, chromedriver_path: Optional[str] = None) -> List[Dict]:
     """
     Convenience function to search for images.
@@ -389,7 +401,11 @@ def search_images(query: str, limit: int = 10, filters: Optional[Dict] = None, c
     Returns:
         List of image metadata dicts
     """
-    downloader = ImageDownloader(chromedriver_path)
+    # Use shared instance if no custom chromedriver path is provided
+    if chromedriver_path is None:
+        downloader = _get_default_downloader()
+    else:
+        downloader = ImageDownloader(chromedriver_path)
     return downloader.search_images(query, limit, filters)
 
 
@@ -405,5 +421,6 @@ def download_image(image_url: str, destination_path: str, timeout: int = 10) -> 
     Returns:
         str: Path to the downloaded file
     """
-    downloader = ImageDownloader()
+    # Use shared instance since no special configuration is needed
+    downloader = _get_default_downloader()
     return downloader.download_image(image_url, destination_path, timeout)
