@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+# add a line commenting the purpose of the script
 
 """
 Test script for image_downloader module.
