@@ -1,6 +1,7 @@
+## ^^artemis_code^^
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# add a line commenting the purpose of the script
+# Purpose: Test script for validating the programmatic interface of the image_downloader module.
 
 """
 Test script for image_downloader module.
@@ -9,6 +10,7 @@ This script demonstrates the programmatic interface functionality.
 
 import os
 import sys
+import shutil
 from image_downloader import search_images, download_image, ImageDownloader
 
 def test_search_functionality():
@@ -54,6 +56,9 @@ def test_download_functionality():
         image_url = results[0]['url']
         test_path = "test_downloads/test_image.jpg"
         
+        # Ensure the download directory exists
+        os.makedirs(os.path.dirname(test_path), exist_ok=True)
+        
         # Download the image
         downloaded_path = download_image(image_url, test_path)
         
@@ -63,9 +68,10 @@ def test_download_functionality():
             print(f"✓ Successfully downloaded image to {downloaded_path}")
             print(f"  File size: {file_size} bytes")
             
-            # Clean up test file
+            # Clean up test file and directory
             os.remove(downloaded_path)
-            os.rmdir("test_downloads")
+            if os.path.isdir("test_downloads"):
+                shutil.rmtree("test_downloads")
             print("✓ Test cleanup completed")
             
             return True
