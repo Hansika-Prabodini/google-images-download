@@ -9,6 +9,10 @@ Python Script for 'searching' and 'downloading' hundreds of Google images to the
 * [Input arguments](https://google-images-download.readthedocs.io/en/latest/arguments.html)
 * [Examples and Code Samples](https://google-images-download.readthedocs.io/en/latest/examples.html#)
 
+## Tests
+
+* See tests/readme.md for details about the regression test in tests/test_bug.py.
+
 ## Disclaimer
 
 This program lets you download tons of images from Google.
