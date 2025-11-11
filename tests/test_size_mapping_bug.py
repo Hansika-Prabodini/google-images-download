@@ -2,10 +2,10 @@ import pytest
 from google_images_download.google_images_download import googleimagesdownload
 
 
-def test_build_url_parameters_size_mapping_xga():
+def test_build_url_parameters_size_mapping():
     gid = googleimagesdownload()
-    # Build arguments with only the 'size' parameter to isolate behavior
-    arguments = {key: None for key in [
+    # Build parameters with size '>1024*768'
+    arguments = {k: None for k in [
         "keywords", "keywords_from_file", "prefix_keywords", "suffix_keywords",
         "limit", "format", "color", "color_type", "usage_rights", "size",
         "exact_size", "aspect_ratio", "type", "time", "time_range", "delay", "url", "single_image",
@@ -15,9 +15,8 @@ def test_build_url_parameters_size_mapping_xga():
         "offset", "no_download","save_source","silent_mode","ignore_urls"
     ]}
     arguments['size'] = '>1024*768'
-
     params = gid.build_url_parameters(arguments)
 
-    # Before patch, there was a typo 'visz' instead of 'isz' in size mapping for >1024*768
+    # Before patch, there was a typo 'visz' instead of 'isz'. Ensure it's corrected.
     assert 'isz:lt,islt:xga' in params
     assert 'visz:lt,islt:xga' not in params
