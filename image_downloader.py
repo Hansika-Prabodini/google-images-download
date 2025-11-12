@@ -15,7 +15,7 @@ import json
 import re
 import ssl
 import socket
-from typing import List, Dict, Optional, Tuple
+from typing import List, Dict, Optional, Tuple, Union
 
 # Import libraries based on Python version
 version = (3, 0)
@@ -41,14 +41,73 @@ else:  # Python 2.x
 class ImageDownloader:
     """Main class for image search and download functionality."""
     
-    def __init__(self, chromedriver_path: Optional[str] = None):
+    def __init__(
+        self,
+        chromedriver_path: Optional[str] = None,
+        # Reliability/HTTP configuration (optional; defaults preserve prior behavior)
+        max_retries: int = 3,
+        backoff_base: float = 0.5,
+        backoff_jitter: float = 0.2,
+        rate_limit_rps: Optional[float] = None,
+        user_agents: Optional[List[str]] = None,
+        proxies: Optional[Union[str, List[str]]] = None,
+        timeout: float = 10.0,
+    ):
         """
         Initialize the ImageDownloader.
         
         Args:
             chromedriver_path: Path to chromedriver executable. If None, will try to auto-detect.
+            max_retries: Maximum number of retry attempts for HTTP requests made by the internal HttpClient. Default: 3.
+            backoff_base: Base backoff delay in seconds between retries. Default: 0.5s.
+            backoff_jitter: Additional random jitter in seconds added to backoff sleep to avoid thundering herd. Default: 0.2s.
+            rate_limit_rps: Requests-per-second cap. If None, rate limiting is disabled (previous behavior).
+            user_agents: Optional list of user agent strings to rotate through. If None, use built-in/default UA pool.
+            proxies: A proxy URL string or list of proxy URLs to rotate through. If None, rely on environment/no proxy.
+            timeout: Default per-request timeout in seconds applied by HttpClient. Default: 10s.
+        
+        Notes:
+            These options affect outbound HTTP behavior via the internal HttpClient (if available). When omitted,
+            behavior should closely match previous releases (no rate limiting; similar timeouts and headers).
         """
         self.chromedriver_path = chromedriver_path
+
+        # Minimal type validation without being strict (None or expected type)
+        self.max_retries = int(max_retries) if max_retries is not None else 3
+        self.backoff_base = float(backoff_base) if backoff_base is not None else 0.5
+        self.backoff_jitter = float(backoff_jitter) if backoff_jitter is not None else 0.2
+        self.rate_limit_rps = float(rate_limit_rps) if rate_limit_rps is not None else None
+        # user_agents may be None or list[str]
+        self.user_agents = user_agents if (user_agents is None or isinstance(user_agents, list)) else [str(user_agents)]
+        # proxies may be None, str, or list[str]
+        if proxies is None or isinstance(proxies, list):
+            self.proxies = proxies
+        else:
+            self.proxies = [str(proxies)]
+        self.timeout = float(timeout) if timeout is not None else 10.0
+
+        # Try to initialize/update an internal HttpClient if available.
+        # We import lazily to avoid adding hard dependency if module is absent.
+        self._http_client = None
+        try:
+            # Attempt different plausible import paths for HttpClient implementation
+            try:
+                from _http import HttpClient as _HttpClient  # type: ignore
+            except Exception:
+                _HttpClient = None  # type: ignore
+            if _HttpClient is not None:
+                self._http_client = _HttpClient(
+                    max_retries=self.max_retries,
+                    backoff_base=self.backoff_base,
+                    backoff_jitter=self.backoff_jitter,
+                    rate_limit_rps=self.rate_limit_rps,
+                    user_agents=self.user_agents,
+                    proxies=self.proxies,
+                    timeout=self.timeout,
+                )
+        except Exception:
+            # If HttpClient is not available or cannot be constructed, silently continue.
+            self._http_client = None
         
     def search_images(self, query: str, limit: int = 10, filters: Optional[Dict] = None) -> List[Dict]:
         """
