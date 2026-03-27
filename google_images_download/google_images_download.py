@@ -346,7 +346,7 @@ class googleimagesdownload:
                 urll2 = content[l3 + 19:l4]
                 return urll2
             except:
-                return "Cloud not connect to Google Images endpoint"
+                return "Could not connect to Google Images endpoint"
         else:  # If the Current Version of Python is 2.x
             try:
                 searchUrl = 'https://www.google.com/searchbyimage?site=search&sa=X&image_url=' + similar_images
@@ -368,7 +368,7 @@ class googleimagesdownload:
                 urll2 = content[l3 + 19:l4]
                 return(urll2)
             except:
-                return "Cloud not connect to Google Images endpoint"
+                return "Could not connect to Google Images endpoint"
 
     #Building URL parameters
     def build_url_parameters(self,arguments):
